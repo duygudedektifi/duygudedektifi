@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duygu Dedektifi - Psikolojik Farkındalık Oyunu</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        #game-container {
+            background-color: white;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            color: #4a4e69;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #9a8c98;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        #stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #f2e9e4;
+            padding: 10px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        #timer {
+            color: #e63946;
+        }
+
+        #question-box {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 30px;
+            line-height: 1.4;
+            color: #22223b;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #c9ada7;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            background-color: #c9ada7;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .correct {
+            background-color: #2a9d8f !important;
+            color: white !important;
+            border-color: #2a9d8f !important;
+        }
+
+        .wrong {
+            background-color: #e63946 !important;
+            color: white !important;
+            border-color: #e63946 !important;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            min-height: 25px;
+        }
+
+        #next-btn, #restart-btn, #start-btn {
+            margin-top: 20px;
+            background-color: #4a4e69;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: none;
+            transition: 0.3s;
+        }
+
+        #start-btn {
+            display: inline-block;
+            background-color: #2a9d8f;
+            font-size: 22px;
+            padding: 15px 40px;
+        }
+
+        #next-btn:hover, #restart-btn:hover, #start-btn:hover {
+            opacity: 0.8;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    
+    <div id="start-screen">
+        <h1>🕵️‍♂️ Duygu Dedektifi</h1>
+        <p class="subtitle">Ortaokul Psikolojik Farkındalık Oyunu</p>
+        <p>Gündelik hayatta karşılaştığın olaylara en sağlıklı tepkiyi verebilir misin?</p>
+        <ul style="text-align: left; color: #4a4e69;">
+            <li>Her soru için <strong>15 saniye</strong> süren var.</li>
+            <li>Toplam <strong>3 can</strong> hakkın var (❤️❤️❤️).</li>
+            <li>En empatik ve sağlıklı seçeneği bul!</li>
+        </ul>
+        <button id="start-btn" onclick="startGame()">Oyuna Başla 🚀</button>
+    </div>
+
+    <div id="play-screen" class="hidden">
+        <div id="stats">
+            <span id="lives-display">Can: ❤️❤️❤️</span>
+            <span id="score-display">Puan: 0</span>
+            <span id="timer">⏳ 15s</span>
+        </div>
+
+        <div id="question-box">Soru buraya gelecek</div>
+        
+        <div class="options-container" id="options">
+            <!-- Seçenekler JS ile eklenecek -->
+        </div>
+
+        <div id="message"></div>
+        <button id="next-btn" onclick="nextQuestion()">Sıradaki Soru ➡️</button>
+        <button id="restart-btn" onclick="resetGame()">Tekrar Oyna 🔄</button>
+    </div>
+
+</div>
+
+<script>
+    const questions = [
+        {
+            question: "😠 Sınıftaki yakın bir arkadaşın sana çok kaba bir söz söyledi ve sen çok sinirlendin. Ne yapmalısın?",
+            options: [
+                "Ona hemen daha kötü bir sözle karşılık veririm.",
+                "Derin bir nefes alıp sakinleşmeyi beklerim ve sonra bu sözün beni ne kadar kırdığını ona söylerim.",
+                "Bütün sınıfa onun ne kadar kötü biri olduğunu anlatırım."
+            ],
+            answer: 1,
+            feedback: "Harika! Öfkeyle hareket etmemek ve duygularımızı 'Ben dili' ile ifade etmek en sağlıklı iletişim yoludur."
+        },
+        {
+            question: "😰 Yarın çok önemli bir sınavın var. Kalbin hızlı çarpıyor ve karnına ağrılar giriyor. Bu stresle nasıl başa çıkarsın?",
+            options: [
+                "Kendimi rahatlatmak için kısa bir mola verip nefes egzersizi yaparım, sonra notlarımı gözden geçiririm.",
+                "Sınavı düşünmemek için sabaha kadar bilgisayar oyunu oynarım.",
+                "Ağlayıp 'Asla başaramayacağım' diyerek çalışmayı bırakırım."
+            ],
+            answer: 0,
+            feedback: "Doğru! Stres normaldir. Önemli olan nefes egzersizi gibi yöntemlerle bedeni sakinleştirip planlı çalışmaktır."
+        },
+        {
+            question: "😢 Sınıfınızdan bir öğrencinin, okul takımına seçilemediği için köşede gizlice ağladığını gördün. Ne yaparsın?",
+            options: [
+                "Görmezden gelip kendi arkadaşlarımla oynamaya devam ederim.",
+                "Yanına gidip 'Eminim çok üzgünsündür, konuşmak ister misin?' diye sorarım.",
+                "'Aman canım, alt tarafı bir takım, buna mı ağlıyorsun?' derim."
+            ],
+            answer: 1,
+            feedback: "Empati kurdun, tebrikler! Birinin duygusunu küçümsemek yerine ona anlaşıldığını hissettirmek psikolojik destek sağlar."
+        },
+        {
+            question: "📱 Bir arkadaş grubu, WhatsApp'ta başka bir sınıf arkadaşınızla alay eden bir fotoğraf paylaştı. (Siber Zorbalık) Ne tepki verirsin?",
+            options: [
+                "Ben de gruba gülücük emojisi atarım ki dışlanmayayım.",
+                "Bu yapılanın siber zorbalık olduğunu ve doğru olmadığını gruba yazar, güvendiğim bir öğretmene durumu bildiririm.",
+                "Fotoğrafı alıp başka arkadaşlarıma da gönderirim."
+            ],
+            answer: 1,
+            feedback: "Çok cesurca! Zorbalığa sessiz kalmamak ve yetişkinlerden destek almak sınırları korumak için çok önemlidir."
+        },
+        {
+            question: "🤔 Son zamanlarda kendini çok yorgun, isteksiz hissediyorsun ve hiçbir şey yapmak içinden gelmiyor. Ne yapmalısın?",
+            options: [
+                "Bu durumu içime atar, kimseye belli etmemeye çalışırım.",
+                "Bunun benim suçum olduğunu düşünür, kendime kızarım.",
+                "Duygularımı okul psikolojik danışmanıyla veya güvendiğim bir aile bireyiyle paylaşırım."
+            ],
+            answer: 2,
+            feedback: "Doğru! Psikolojik sağlığımız için duygularımızı paylaşmak ve gerektiğinde uzman yardımı almak çok doğaldır."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let lives = 3;
+    let score = 0;
+    let timeLeft = 15;
+    let timerInterval;
+    let canAnswer = true;
+
+    const startScreen = document.getElementById('start-screen');
+    const playScreen = document.getElementById('play-screen');
+    const questionBox = document.getElementById('question-box');
+    const optionsContainer = document.getElementById('options');
+    const livesDisplay = document.getElementById('lives-display');
+    const scoreDisplay = document.getElementById('score-display');
+    const timerDisplay = document.getElementById('timer');
+    const messageDisplay = document.getElementById('message');
+    const nextBtn = document.getElementById('next-btn');
+    const restartBtn = document.getElementById('restart-btn');
+
+    function startGame() {
+        startScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        resetGame();
+    }
+
+    function loadQuestion() {
+        clearInterval(timerInterval);
+        canAnswer = true;
+        timeLeft = 15;
+        timerDisplay.innerText = `⏳ ${timeLeft}s`;
+        messageDisplay.innerText = "";
+        nextBtn.style.display = "none";
+        
+        const q = questions[currentQuestionIndex];
+        questionBox.innerText = q.question;
+        
+        optionsContainer.innerHTML = "";
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.classList.add('option-btn');
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+
+        startTimer();
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerDisplay.innerText = `⏳ ${timeLeft}s`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                timeOut();
+            }
+        }, 1000);
+    }
+
+    function timeOut() {
+        canAnswer = false;
+        loseLife();
+        messageDisplay.innerText = "⏰ Süre doldu! Çok yavaş kaldın.";
+        messageDisplay.style.color = "#e63946";
+        showCorrectAnswer();
+        checkGameOver();
+    }
+
+    function checkAnswer(selectedIndex, btn) {
+        if (!canAnswer) return;
+        canAnswer = false;
+        clearInterval(timerInterval);
+
+        const q = questions[currentQuestionIndex];
+        
+        if (selectedIndex === q.answer) {
+            btn.classList.add('correct');
+            score += 20;
+            scoreDisplay.innerText = `Puan: ${score}`;
+            messageDisplay.innerText = "✅ " + q.feedback;
+            messageDisplay.style.color = "#2a9d8f";
+        } else {
+            btn.classList.add('wrong');
+            loseLife();
+            messageDisplay.innerText = "❌ Maalesef yanlış seçim. " + q.feedback;
+            messageDisplay.style.color = "#e63946";
+            showCorrectAnswer();
+        }
+
+        checkGameOver();
+    }
+
+    function showCorrectAnswer() {
+        const q = questions[currentQuestionIndex];
+        const buttons = optionsContainer.children;
+        buttons[q.answer].classList.add('correct');
+    }
+
+    function loseLife() {
+        lives--;
+        let hearts = "";
+        for (let i = 0; i < lives; i++) hearts += "❤️";
+        for (let i = lives; i < 3; i++) hearts += "🖤"; // Kaybedilen can
+        livesDisplay.innerText = `Can: ${hearts}`;
+    }
+
+    function checkGameOver() {
+        if (lives <= 0) {
+            messageDisplay.innerText += "\n\n💀 Oyun Bitti! Tüm canlarını kaybettin.";
+            nextBtn.style.display = "none";
+            restartBtn.style.display = "inline-block";
+        } else if (currentQuestionIndex >= questions.length - 1) {
+            messageDisplay.innerText += `\n\n🎉 Tebrikler! Oyunu tamamladın. Toplam Puanın: ${score}`;
+            nextBtn.style.display = "none";
+            restartBtn.style.display = "inline-block";
+        } else {
+            nextBtn.style.display = "inline-block";
+        }
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        loadQuestion();
+    }
+
+    function resetGame() {
+        currentQuestionIndex = 0;
+        lives = 3;
+        score = 0;
+        livesDisplay.innerText = "Can: ❤️❤️❤️";
+        scoreDisplay.innerText = "Puan: 0";
+        restartBtn.style.display = "none";
+        loadQuestion();
+    }
+
+</script>
+</body>
+</html>
